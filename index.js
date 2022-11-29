@@ -47,6 +47,9 @@ async function run() {
     const sellersCollection = client
       .db("usedProductsMarket")
       .collection("sellers");
+    const addProductCollection = client
+      .db("usedProductsMarket")
+      .collection("addproducts");
 
     //product option ------------------
     app.get("/productOptions", async (req, res) => {
@@ -80,6 +83,7 @@ async function run() {
       const query = { buyerEmail: email };
       const bookings = await bookingsCollection.find(query).toArray();
       res.send(bookings);
+      console.log(bookings);
     });
 
     //jwt-----------------------
@@ -113,13 +117,13 @@ async function run() {
       res.send({ isAdmin: user?.role === "admin" });
     });
 
-    app.post("/users", async (req, res) => {
+    app.post("/users", verifyJwt, async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
 
-    app.put("/users/admin/:id", verifyJwt, async (req, res) => {
+    app.put("/users/admin/:id", async (req, res) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
       const user = await usersCollection.findOne(query);
@@ -143,10 +147,86 @@ async function run() {
       res.send(result);
     });
 
+    //delete user
+    app.delete("/users/:id", verifyJwt, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await usersCollection.deleteOne(filter);
+      res.send(result);
+      console.log(result);
+    });
+
     //seller------------------
-    app.post("/sellers", async (req, res) => {
+
+    app.get("/addproducts", verifyJwt, async (req, res) => {
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "forbidden" });
+      }
+      const query = { email: email };
+      const myProduct = await addProductCollection.find(query).toArray();
+      res.send(myProduct);
+      // console.log(myProduct);
+    });
+
+    // app.get("/bookings", verifyJwt, async (req, res) => {
+    //   const email = req.query.buyeremail;
+    //   const decodedEmail = req.decoded.email;
+    //   if (email !== decodedEmail) {
+    //     return res.status(403).send({ message: "forbidden" });
+    //   }
+
+    //   const query = { buyerEmail: email };
+    //   const bookings = await bookingsCollection.find(query).toArray();
+    //   res.send(bookings);
+    // });
+
+    app.get("/sellers", verifyJwt, async (req, res) => {
+      const query = {};
+      const result = await sellersCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/sellers", verifyJwt, async (req, res) => {
       const user = req.body;
       const result = await sellersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.delete("/sellers/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await sellersCollection.deleteOne(filter);
+      res.send(result);
+    });
+
+    // app.delete("/users/:id", verifyJwt, async (req, res) => {
+    //   const id = req.params.id;
+    //   const filter = { _id: ObjectId(id) };
+    //   const result = await usersCollection.deleteOne(filter);
+    //   res.send(result);
+    //   console.log(result);
+    // });
+
+    //product--------------
+
+    app.get("/addproducts", async (req, res) => {
+      const query = {};
+      const result = await addProductCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/addproducts", async (req, res) => {
+      const product = req.body;
+      const result = await addProductCollection.insertOne(product);
+      res.send(result);
+    });
+
+    app.delete("/addproducts/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await addProductCollection.deleteOne(filter);
       res.send(result);
     });
   } finally {
