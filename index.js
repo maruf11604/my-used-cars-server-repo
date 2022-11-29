@@ -50,6 +50,11 @@ async function run() {
     const addProductCollection = client
       .db("usedProductsMarket")
       .collection("addproducts");
+    //verify Admin
+    const verifyAdmin = (req, res, next) => {
+      console.log("inside verifyAdmin", req.decoded.email);
+      next();
+    };
 
     //product option ------------------
     app.get("/productOptions", async (req, res) => {
@@ -73,7 +78,7 @@ async function run() {
       const result = await bookingsCollection.insertOne(booking);
       res.send(result);
     });
-    app.get("/bookings", verifyJwt, async (req, res) => {
+    app.get("/bookings", verifyJwt, verifyAdmin, async (req, res) => {
       const email = req.query.buyeremail;
       const decodedEmail = req.decoded.email;
       if (email !== decodedEmail) {
@@ -117,7 +122,7 @@ async function run() {
       res.send({ isAdmin: user?.role === "admin" });
     });
 
-    app.post("/users", verifyJwt, async (req, res) => {
+    app.post("/users", verifyJwt, verifyAdmin, async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
       res.send(result);
@@ -148,7 +153,7 @@ async function run() {
     });
 
     //delete user
-    app.delete("/users/:id", verifyJwt, async (req, res) => {
+    app.delete("/users/:id", verifyJwt, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
