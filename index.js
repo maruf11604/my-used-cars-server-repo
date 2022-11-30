@@ -127,7 +127,7 @@ async function run() {
     app.post("/payments", async (req, res) => {
       const payment = req.body;
       const result = await paymentsCollection.insertOne(payment);
-      const id = payment.bookingId;
+      const id = payment.dataId;
       const filter = { _id: ObjectId(id) };
       const updatedDoc = {
         $set: {
