@@ -89,14 +89,14 @@ async function run() {
       const result = await bookingsCollection.insertOne(booking);
       res.send(result);
     });
-    app.get("/bookings", verifyJwt, verifyAdmin, async (req, res) => {
-      const email = req.query.buyeremail;
-      const decodedEmail = req.decoded.email;
-      if (email !== decodedEmail) {
-        return res.status(403).send({ message: "forbidden" });
-      }
+    app.get("/bookings", async (req, res) => {
+      const email = req.query.email;
+      // const decodedEmail = req.decoded.email;
+      // if (email !== decodedEmail) {
+      //   return res.status(403).send({ message: "forbidden" });
+      // }
 
-      const query = { buyerEmail: email };
+      const query = { email: email };
       const bookings = await bookingsCollection.find(query).toArray();
       res.send(bookings);
       console.log(bookings);
@@ -173,8 +173,15 @@ async function run() {
       const user = await usersCollection.findOne(query);
       res.send({ isAdmin: user?.role === "admin" });
     });
+    app.get("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      console.log(user);
+      res.send({ isSeller: user?.person === "Seller" });
+    });
 
-    app.post("/users", verifyJwt, verifyAdmin, async (req, res) => {
+    app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
       res.send(result);
@@ -233,7 +240,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/sellers", verifyJwt, async (req, res) => {
+    app.post("/sellers", async (req, res) => {
       const user = req.body;
       const result = await sellersCollection.insertOne(user);
       res.send(result);
