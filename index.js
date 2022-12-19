@@ -167,6 +167,14 @@ async function run() {
       res.send(users);
     });
 
+    app.get("/users/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      console.log(user);
+      res.send({ isUser: user?.person === "Buyer" });
+    });
+
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
